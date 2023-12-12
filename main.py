@@ -1,3 +1,4 @@
+import heapq
 from collections import deque
 
 
@@ -28,28 +29,21 @@ class Graph:
                 neighbors = [edge[1] for edge in self.graph if edge[0] == current_vertex]
                 queue.extend(neighbors)
 
-    def kruskal(self):
-        sorted_edges = sorted(self.graph, key=lambda edge: edge[2] if edge[2] is not None else float('inf'))
-
-        parent = {vertex: vertex for vertex in set.union(*map(set, [(edge[0], edge[1]) for edge in sorted_edges]))}
-
-        def find_parent(vertex):
-            if parent[vertex] != vertex:
-                parent[vertex] = find_parent(parent[vertex])
-            return parent[vertex]
-
-        def union(v1, v2):
-            root1 = find_parent(v1)
-            root2 = find_parent(v2)
-            parent[root1] = root2
-
+    def prim(self, start_vertex):
+        visited = set()
         mst = []
+        priority_queue = [(0, start_vertex, None)]
 
-        for edge in sorted_edges:
-            v1, v2, weight = edge
-            if find_parent(v1) != find_parent(v2):
-                mst.append(edge)
-                union(v1, v2)
+        while priority_queue:
+            weight, current_vertex, parent = heapq.heappop(priority_queue)
+            if current_vertex not in visited:
+                visited.add(current_vertex)
+                if parent is not None:
+                    mst.append((parent, current_vertex, weight))
+                neighbors = [(edge[2], edge[1]) for edge in self.graph if edge[0] == current_vertex]
+                for neighbor_weight, neighbor_vertex in neighbors:
+                    if neighbor_vertex not in visited:
+                        heapq.heappush(priority_queue, (neighbor_weight, neighbor_vertex, current_vertex))
 
         return mst
 
@@ -69,8 +63,8 @@ if __name__ == "__main__":
     print("\nBFS traversal starting from vertex 1:")
     my_graph.bfs(1)
 
-    mst_edges = my_graph.kruskal()
+    mst_edges = my_graph.prim(1)
 
-    print("\n\nMinimum Spanning Tree (Kruskal's Algorithm):")
+    print("\n\nMinimum Spanning Tree (Prim's Algorithm):")
     for edge in mst_edges:
         print(f"{edge[0]} {edge[1]} {edge[2]}")
